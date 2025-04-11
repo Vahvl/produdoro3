@@ -3,15 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todolist</title>
+    <title>To-do list</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
         }
+        #timer {
+            font-size: 2em;
+            color: red;
+        }
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            width: 25%;
+            background-color: #f1f1f1;
+            position: fixed;
+            height: 100%;
+            overflow: auto;
+        }
+
+        li a {
+            display: block;
+            color: #000;
+            padding: 8px 16px;
+            text-decoration: none;
+        }
+
+        li a.active {
+            background-color: #04AA6D;
+            color: white;
+        }
+
+        li a:hover:not(.active) {
+            background-color: #555;
+            color: white;
+        }
     </style>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
 </head>
 <body>
+    <ul>
+        <li><a class="active" href="">Home</a></li>
+        <li><a href="pomodoro">Timer</a></li>
+        <li><a href="settings">Settings</a></li>
+    </ul>
 </body>
 </html>

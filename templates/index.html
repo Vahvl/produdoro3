@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Allalugemise taimer</title>
+    <title>Koduleht</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,41 +48,11 @@
     </div>
 </head>
 <body>
-    
     <ul>
         <li><a class="active" href="">Home</a></li>
         <li><a href="pomodoro">Timer</a></li>
         <li><a href="settings">Settings</a></li>
+        <li><a href="settings">Settings</a></li>
     </ul>
-
-    <h1>Allalugemise taimer</h1>
-    <p>Aega jäänud:</p>
-    <div id="timer">0:10</div>  <!-- Algne aeg 10 sekundit -->
-
-    <script>
-        let timeLeft = 10;  // Sekundites
-        const timerElement = document.getElementById("timer");
-
-        function updateTimer() {
-            let minutes = Math.floor(timeLeft / 60);
-            let seconds = timeLeft % 60;
-            timerElement.innerHTML = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-            
-            if (timeLeft > 0) {
-                timeLeft--;
-            } else {
-                clearInterval(timerInterval);
-                timerElement.innerHTML = "Aeg läbi!";
-            }
-        }
-
-        const timerInterval = setInterval(updateTimer, 1000);
-    </script>
-    <a href="{{url_for('pomodoro')}}">
-        <button>Pomodoro taimer</button>
-    </a>
-    
-
-
 </body>
 </html>
