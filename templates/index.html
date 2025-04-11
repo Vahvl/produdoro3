@@ -14,6 +14,27 @@
             font-size: 2em;
             color: red;
         }
+        .sidebar {
+            width: 200px;
+            height: 100vh;
+            background-color: #222;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            .sidebar a {
+            color: white;
+            text-decoration: none;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .sidebar a:hover {
+            background-color: #444;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
     </style>
 </head>
 <body>
@@ -45,5 +66,15 @@
         <button>Pomodoro taimer</button>
     </a>
     
+    <div class="sidebar">
+        <a href="/">Avaleht</a>
+        <a href="/tasks">Ülesanded</a>
+        <a href="/stats">Statistika</a>
+        <a href="/settings">Seaded</a>
+    </div>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
 </body>
 </html>
