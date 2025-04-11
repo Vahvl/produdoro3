@@ -5,26 +5,31 @@
     <title>Minu Ülesannete Töölaud</title>
     <style>
         body {
-            display: flex;
             font-family: sans-serif;
-            background: #f4f4f4;
             margin: 0;
+            padding: 0;
+            background: #f0f8ff; /* Light blue background */
+        }
+        .content {
+            margin-left: 22%; /* Adjusted for sidebar */
             padding: 20px;
         }
         .board {
             display: flex;
             gap: 20px;
-            width: 100%;
+            margin-top: 20px;
         }
         .column {
             flex: 1;
-            background-color: #e0e0e0;
+            background-color: #e6e6fa; /* Lavender background */
             padding: 10px;
             border-radius: 8px;
             min-height: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .column h2 {
             text-align: center;
+            color: #333;
         }
         .task-card {
             background: white;
@@ -32,71 +37,142 @@
             margin-bottom: 10px;
             border-radius: 6px;
             cursor: grab;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         ul {
             list-style-type: none;
             margin: 0;
             padding: 0;
-            width: 25%;
-            background-color: #f1f1f1;
+            width: 20%;
+            background-color: #333; /* Dark sidebar */
             position: fixed;
             height: 100%;
             overflow: auto;
         }
-
         li a {
             display: block;
-            color: #000;
-            padding: 8px 16px;
+            color: white;
+            padding: 10px 16px;
             text-decoration: none;
         }
-
         li a.active {
             background-color: #04AA6D;
             color: white;
         }
-
         li a:hover:not(.active) {
-            background-color: #555;
+            background-color: #575757;
             color: white;
+        }
+        .add-task-form {
+            margin-bottom: 20px;
+        }
+        .add-task-form input {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .add-task-form button {
+            padding: 8px 12px;
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .add-task-form button:hover {
+            background-color: #037a50;
         }
     </style>
 </head>
 <body>
     <ul>
-        <li><a class="index" href="">Koduleht</a></li>
+        <li><a class="index" href="/">Koduleht</a></li>
         <li><a href="pomodoro">Taimer</a></li>
-        <li><a href="todolist">To-do list</a></li>
+        <li><a href="todolist" class="active">To-do list</a></li>
         <li><a href="settings">Settings</a></li>
     </ul>
-
-    <div class="board">
-        <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
-            <h2>Tegemata</h2>
-            <div class="task-card" draggable="true" ondragstart="drag(event)">Õpi Flaski</div>
-        </div>
-        <div class="column" id="doing" ondrop="drop(event)" ondragover="allowDrop(event)">
-            <h2>Tegemisel</h2>
-        </div>
-        <div class="column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
-            <h2>Tehtud</h2>
+    <div class="content">
+        <form class="add-task-form" onsubmit="addTask(event)">
+            <input type="text" id="new-task" placeholder="Lisa uus ülesanne" required>
+            <button type="submit">Lisa</button>
+        </form>
+        <div class="board">
+            <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2>Tegemata</h2>
+            </div>
+            <div class="column" id="doing" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2>Tegemisel</h2>
+            </div>
+            <div class="column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2>Tehtud</h2>
+            </div>
         </div>
     </div>
-
     <script>
+        document.addEventListener("DOMContentLoaded", loadTasks);
+
         function allowDrop(ev) {
             ev.preventDefault();
         }
 
         function drag(ev) {
-            ev.dataTransfer.setData("text", ev.target.outerHTML);
-            ev.target.remove();
+            ev.dataTransfer.setData("text", ev.target.id);
         }
 
         function drop(ev) {
             ev.preventDefault();
-            const data = ev.dataTransfer.getData("text");
-            ev.target.closest(".column").innerHTML += data;
+            const taskId = ev.dataTransfer.getData("text");
+            const taskElement = document.getElementById(taskId);
+            ev.target.closest(".column").appendChild(taskElement);
+            saveTasks();
+        }
+
+        function addTask(event) {
+            event.preventDefault();
+            const taskInput = document.getElementById("new-task");
+            const taskText = taskInput.value.trim();
+            if (taskText) {
+                const taskId = `task-${Date.now()}`;
+                const taskCard = document.createElement("div");
+                taskCard.id = taskId;
+                taskCard.className = "task-card";
+                taskCard.draggable = true;
+                taskCard.ondragstart = drag;
+                taskCard.textContent = taskText;
+                document.getElementById("todo").appendChild(taskCard);
+                taskInput.value = "";
+                saveTasks();
+            }
+        }
+
+        function saveTasks() {
+            const columns = document.querySelectorAll(".column");
+            const tasks = {};
+            columns.forEach(column => {
+                const columnId = column.id;
+                tasks[columnId] = [];
+                column.querySelectorAll(".task-card").forEach(task => {
+                    tasks[columnId].push({ id: task.id, text: task.textContent });
+                });
+            });
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem("tasks")) || {};
+            Object.keys(tasks).forEach(columnId => {
+                const column = document.getElementById(columnId);
+                tasks[columnId].forEach(task => {
+                    const taskCard = document.createElement("div");
+                    taskCard.id = task.id;
+                    taskCard.className = "task-card";
+                    taskCard.draggable = true;
+                    taskCard.ondragstart = drag;
+                    taskCard.textContent = task.text;
+                    column.appendChild(taskCard);
+                });
+            });
         }
     </script>
 </body>
