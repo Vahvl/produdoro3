@@ -1,6 +1,11 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, make_response
 
 app = Flask(__name__)
+
+@app.after_request
+def add_permissions_policy(response):
+    response.headers["Permissions-Policy"] = "autoplay=(self)"
+    return response
 
 @app.route('/')
 def index():

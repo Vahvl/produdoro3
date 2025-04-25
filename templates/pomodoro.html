@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="et">
 <head>
+    Permissions-Policy: autoplay=(self)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pomodoro taimer</title>
@@ -43,6 +44,7 @@
     </style>
 </head>
 <body>
+    <audio id="alarm-sound" src="alarm.mp3" type = "audio/mp3"></audio>
     <ul>
         <li><a class="index" href="/">Koduleht</a></li>
         <li><a href="pomodoro" class="active">Taimer</a></li>
@@ -50,29 +52,37 @@
         <li><a href="settings">Settings</a></li>
     </ul>
     <div class="content">
+        
         <h1>Allalugemise taimer</h1>
         <p>Aega jäänud:</p>
         <div id="timer">0:10</div>  <!-- Algne aeg 10 sekundit -->
-    </div>
+        <button id="start-btn">Start</button>
 
+    </div>
+    
     <script>
+        let starttime = 10
         let timeLeft = 10;  // Sekundites
         const timerElement = document.getElementById("timer");
-
-        function updateTimer() {
-            let minutes = Math.floor(timeLeft / 60);
-            let seconds = timeLeft % 60;
-            timerElement.innerHTML = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-            
-            if (timeLeft > 0) {
-                timeLeft--;
-            } else {
-                clearInterval(timerInterval);
-                timerElement.innerHTML = "Aeg läbi!";
+        const alarmSound = document.getElementById("alarm-sound");
+        const startBtn = document.getElementById("start-btn")
+        startBtn.addEventListener("click", () => {
+            function updateTimer() {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerElement.innerHTML = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                if (timeLeft > 0) {
+                    timeLeft--;
+                } else {
+                    alarmSound.play();
+                    clearInterval(timerInterval);
+                    timerElement.innerHTML = "Aeg läbi!";
+                }
             }
-        }
-
-        const timerInterval = setInterval(updateTimer, 1000);
+            
+                const timerInterval = setInterval(updateTimer, 1000);
+        });
     </script>
 
 </body>
