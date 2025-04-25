@@ -7,15 +7,14 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-            margin-left: 20%; /* Adjust content to align with sidebar */
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff; /* Light blue background */
         }
-        #timer {
-            font-size: 2em;
-            color: red;
+        .content {
+            margin-left: 22%; /* Adjusted for sidebar */
+            padding: 20px;
         }
-
         ul {
             list-style-type: none;
             margin: 0;
@@ -26,26 +25,22 @@
             height: 100%;
             overflow: auto;
         }
-
         li a {
             display: block;
             color: white;
             padding: 10px 16px;
             text-decoration: none;
+            font-size: 40px;
         }
-
         li a.active {
             background-color: #04AA6D;
             color: white;
         }
-
         li a:hover:not(.active) {
             background-color: #575757;
             color: white;
         }
     </style>
-    <div class="content">
-        {% block content %}{% endblock %}
     </div>
 </head>
 <body>

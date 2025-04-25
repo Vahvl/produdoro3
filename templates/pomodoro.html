@@ -7,15 +7,14 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-            margin-left: 20%; /* Adjust content to align with sidebar */
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff; /* Light blue background */
         }
-        #timer {
-            font-size: 2em;
-            color: red;
+        .content {
+            margin-left: 22%; /* Adjusted for sidebar */
+            padding: 20px;
         }
-
         ul {
             list-style-type: none;
             margin: 0;
@@ -25,42 +24,36 @@
             position: fixed;
             height: 100%;
             overflow: auto;
-            z-index: 1; /* Ensure it doesn't overlap content */
         }
-
         li a {
             display: block;
             color: white;
             padding: 10px 16px;
             text-decoration: none;
+            font-size: 40px;
         }
-
         li a.active {
             background-color: #04AA6D;
             color: white;
         }
-
         li a:hover:not(.active) {
             background-color: #575757;
             color: white;
         }
     </style>
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
 </head>
 <body>
-    
     <ul>
         <li><a class="index" href="/">Koduleht</a></li>
         <li><a href="pomodoro" class="active">Taimer</a></li>
         <li><a href="todolist">To-do list</a></li>
         <li><a href="settings">Settings</a></li>
     </ul>
-
-    <h1>Allalugemise taimer</h1>
-    <p>Aega jäänud:</p>
-    <div id="timer">0:10</div>  <!-- Algne aeg 10 sekundit -->
+    <div class="content">
+        <h1>Allalugemise taimer</h1>
+        <p>Aega jäänud:</p>
+        <div id="timer">0:10</div>  <!-- Algne aeg 10 sekundit -->
+    </div>
 
     <script>
         let timeLeft = 10;  // Sekundites
@@ -81,8 +74,6 @@
 
         const timerInterval = setInterval(updateTimer, 1000);
     </script>
-    <a href="{{url_for('pomodoro')}}">
-        <button>Pomodoro taimer</button>
-    </a>
+
 </body>
 </html>
