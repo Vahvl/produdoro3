@@ -56,7 +56,10 @@
         <h1>Pomodoro Timer</h1>
         <p>Aega jäänud:</p>
         <div id="timer">0:10</div>  <!-- Algne aeg 10 sekundit -->
-        <button id="start-btn">Start</button>
+        <form class="add-task-form" onsubmit="addTask(event)">
+            <input type="number" id="kestvus" placeholder="Taimeri kestvus" required>
+            <button id = start-btn, type="submit">Käivita taimer!</button>
+        </form>
 
     </div>
     
