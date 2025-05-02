@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, send_file
 
 app = Flask(__name__)
 
@@ -22,6 +22,10 @@ def settings():
 @app.route('/todolist')
 def todolist():
     return render_template("todolist.html")
+
+@app.route('/alarm.mp3')
+def alarm_mp3():
+    return send_file('song.mp3', download_name='song.mp3')
 
 if __name__ == '__main__':
     app.run(debug=True)
