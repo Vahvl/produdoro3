@@ -23,10 +23,6 @@ def settings():
 def todolist():
     return render_template("todolist.html")
 
-@app.route('/alarm.mp3')
-def alarm_mp3():
-    return send_file('song.mp3', download_name='song.mp3')
-
 if __name__ == '__main__':
     app.run(debug=True)
 

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="et">
+<html lang="en">
 <head>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomodoro taimer</title>
+    <title>Pomodoro Timer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -44,7 +44,7 @@
     </style>
 </head>
 <body>
-    <audio id="alarm-sound" src="alarm.mp3" type = "audio/mp3"></audio>
+
     <ul>
         <li><a class="index" href="/">Koduleht</a></li>
         <li><a href="pomodoro" class="active">Taimer</a></li>
@@ -53,19 +53,23 @@
     </ul>
     <div class="content">
         
-        <h1>Allalugemise taimer</h1>
+        <h1>Pomodoro Timer</h1>
         <p>Aega jäänud:</p>
         <div id="timer">0:10</div>  <!-- Algne aeg 10 sekundit -->
         <button id="start-btn">Start</button>
 
     </div>
     
+    <!-- Audio element for the alarm sound -->
+    <audio id="alarm-sound" src="/static/alarm.mp3"></audio>
+
     <script>
-        let starttime = 10
-        let timeLeft = 10;  // Sekundites
+        let starttime = 10;
+        let timeLeft = 10;  // Seconds
         const timerElement = document.getElementById("timer");
         const alarmSound = document.getElementById("alarm-sound");
-        const startBtn = document.getElementById("start-btn")
+        const startBtn = document.getElementById("start-btn");
+
         startBtn.addEventListener("click", () => {
             function updateTimer() {
                 let minutes = Math.floor(timeLeft / 60);
@@ -75,15 +79,16 @@
                 if (timeLeft > 0) {
                     timeLeft--;
                 } else {
-                    alarmSound.play();
                     clearInterval(timerInterval);
                     timerElement.innerHTML = "Aeg läbi!";
+                    alarmSound.play().catch(error => {
+                        console.error("Audio playback failed:", error);
+                    });
                 }
             }
             
-                const timerInterval = setInterval(updateTimer, 1000);
+            const timerInterval = setInterval(updateTimer, 1000);
         });
     </script>
-
 </body>
 </html>
