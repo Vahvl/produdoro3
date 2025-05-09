@@ -30,6 +30,17 @@
         .column h2 {
             text-align: center;
             color: #333;
+            cursor: pointer; /* Indicate editability */
+            background-color: transparent; /* Default background */
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease; /* Smooth transition */
+        }
+        .column h2:hover {
+            background-color: #d3d3d3; /* Grey background on hover */
+        }
+        .column h2:focus {
+            background-color: transparent; /* Revert to transparent when clicked */
         }
         .task-card {
             background: white;
@@ -100,18 +111,21 @@
         </form>
         <div class="board">
             <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h2>Tegemata</h2>
+                <h2 contenteditable="true" onblur="saveColumnNames()">Tegemata</h2>
             </div>
             <div class="column" id="doing" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h2>Tegemisel</h2>
+                <h2 contenteditable="true" onblur="saveColumnNames()">Tegemisel</h2>
             </div>
             <div class="column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h2>Tehtud</h2>
+                <h2 contenteditable="true" onblur="saveColumnNames()">Tehtud</h2>
             </div>
         </div>
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", loadTasks);
+        document.addEventListener("DOMContentLoaded", () => {
+            loadColumnNames();
+            loadTasks();
+        });
 
         function allowDrop(ev) {
             ev.preventDefault();
@@ -125,7 +139,28 @@
             ev.preventDefault();
             const taskId = ev.dataTransfer.getData("text");
             const taskElement = document.getElementById(taskId);
-            ev.target.closest(".column").appendChild(taskElement);
+            const column = ev.target.closest(".column");
+
+            // Determine the nearest spot in the column
+            const tasks = Array.from(column.querySelectorAll(".task-card"));
+            const dropY = ev.clientY;
+
+            let inserted = false;
+            for (let i = 0; i < tasks.length; i++) {
+                const task = tasks[i];
+                const taskRect = task.getBoundingClientRect();
+                if (dropY < taskRect.top + taskRect.height / 2) {
+                    column.insertBefore(taskElement, task);
+                    inserted = true;
+                    break;
+                }
+            }
+
+            // If not inserted, append to the end
+            if (!inserted) {
+                column.appendChild(taskElement);
+            }
+
             saveTasks();
         }
 
@@ -140,7 +175,22 @@
                 taskCard.className = "task-card";
                 taskCard.draggable = true;
                 taskCard.ondragstart = drag;
-                taskCard.textContent = taskText;
+
+                // Add task text
+                const taskTextElement = document.createElement("span");
+                taskTextElement.textContent = taskText;
+                taskCard.appendChild(taskTextElement);
+
+                // Add delete button
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "✖";
+                deleteButton.style.cssText = "float: right; background: none; color: grey; border: none; font-size: 16px; cursor: pointer;";
+                deleteButton.onclick = () => {
+                    taskCard.remove();
+                    saveTasks();
+                };
+                taskCard.appendChild(deleteButton);
+
                 document.getElementById("todo").appendChild(taskCard);
                 taskInput.value = "";
                 saveTasks();
@@ -154,7 +204,8 @@
                 const columnId = column.id;
                 tasks[columnId] = [];
                 column.querySelectorAll(".task-card").forEach(task => {
-                    tasks[columnId].push({ id: task.id, text: task.textContent });
+                    // Save only the task text, not the delete button
+                    tasks[columnId].push({ id: task.id, text: task.querySelector("span").textContent });
                 });
             });
             localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -170,9 +221,44 @@
                     taskCard.className = "task-card";
                     taskCard.draggable = true;
                     taskCard.ondragstart = drag;
-                    taskCard.textContent = task.text;
+
+                    // Add task text
+                    const taskTextElement = document.createElement("span");
+                    taskTextElement.textContent = task.text;
+                    taskCard.appendChild(taskTextElement);
+
+                    // Add delete button
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "✖";
+                    deleteButton.style.cssText = "float: right; background: none; color: grey; border: none; font-size: 16px; cursor: pointer;";
+                    deleteButton.onclick = () => {
+                        taskCard.remove();
+                        saveTasks();
+                    };
+                    taskCard.appendChild(deleteButton);
+
                     column.appendChild(taskCard);
                 });
+            });
+        }
+
+        function saveColumnNames() {
+            const columns = document.querySelectorAll(".column h2");
+            const columnNames = {};
+            columns.forEach(column => {
+                const columnId = column.parentElement.id;
+                columnNames[columnId] = column.textContent.trim();
+            });
+            localStorage.setItem("columnNames", JSON.stringify(columnNames));
+        }
+
+        function loadColumnNames() {
+            const columnNames = JSON.parse(localStorage.getItem("columnNames")) || {};
+            Object.keys(columnNames).forEach(columnId => {
+                const columnHeader = document.querySelector(`#${columnId} h2`);
+                if (columnHeader) {
+                    columnHeader.textContent = columnNames[columnId];
+                }
             });
         }
     </script>
