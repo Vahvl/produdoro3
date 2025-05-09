@@ -55,9 +55,13 @@
         
         <h1>Pomodoro Timer</h1>
         <p>Aega jäänud:</p>
-        <div id="timer">0:10</div>  <!-- Algne aeg 10 sekundit -->
-        <button id="start-btn">Start</button>
-
+        <div id="timer">0:00</div>
+        <form onsubmit="updateTimer(event)">
+            <input type="number" id="tunnid" placeholder="Tunnid">
+            <input type="number" id="minutid" placeholder="Minutid">
+            <input type="number" id="sekundid" placeholder="Sekundid">
+            <button id="start-btn" type="submit">Käivita taimer!</button>
+        </form>
 
 
     </div>
@@ -66,32 +70,45 @@
     <audio id="alarm-sound" src="/static/alarm.mp3"></audio>
 
     <script>
-        let starttime = 10;
-        let timeLeft = 10;  // Seconds
-        const timerElement = document.getElementById("timer");
+        let timerInterval;
         const alarmSound = document.getElementById("alarm-sound");
-        const startBtn = document.getElementById("start-btn");
 
-        startBtn.addEventListener("click", () => {
-
-            function updateTimer() {
-                let minutes = Math.floor(timeLeft / 60);
-                let seconds = timeLeft % 60;
-                timerElement.innerHTML = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                
-                if (timeLeft > 0) {
-                    timeLeft--;
-                } else {
+        function updateTimer(event) {
+            event.preventDefault(); // Prevent form submission
+    
+            // Clear any existing timer
+            clearInterval(timerInterval);
+    
+            // Get the duration from the input field
+            const tunnid = document.getElementById("tunnid");
+            const minutid = document.getElementById("minutid");
+            const sekundid = document.getElementById("sekundid");
+            let timeLeft = parseInt(tunnid.value*3600) + parseInt(minutid.value*60) + parseInt(sekundid.value);
+    
+            // Update the timer display
+            const timerDisplay = document.getElementById("timer");
+            timerDisplay.textContent = formatTime(timeLeft);
+    
+            // Start the countdown
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = formatTime(timeLeft);
+    
+                if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    timerElement.innerHTML = "Aeg läbi!";
                     alarmSound.play().catch(error => {
-                        console.error("Audio playback failed:", error);
-                    });
+                    console.error("Failed to play alarm sound:", error);
+                });
+                    alert("Aeg on läbi!"); // Notify the user when the timer ends
                 }
-            }
-            
-            const timerInterval = setInterval(updateTimer, 1000);
-        });
+            }, 1000);
+        }
+    
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+        }
     </script>
 </body>
 </html>
