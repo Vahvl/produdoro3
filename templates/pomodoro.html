@@ -74,6 +74,11 @@
         let timerWindow;
         const alarmSound = document.getElementById("alarm-sound");
 
+        function isAudioEnabled() {
+            const value = localStorage.getItem("audioEnabled");
+            return value === null ? true : value === "true";
+        }
+
         function updateTimer(event) {
             event.preventDefault(); // Prevent form submission
     
@@ -107,6 +112,7 @@
             }
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
+<<<<<<< Updated upstream
                     alarmSound.play().catch(error => {
                     console.error("Failed to play alarm sound:", error);
                 });
@@ -114,6 +120,13 @@
                     timerWindow.close();
                 }
                 
+=======
+                    if (isAudioEnabled()) {
+                        alarmSound.play().catch(error => {
+                            console.error("Failed to play alarm sound:", error);
+                        });
+                    }
+>>>>>>> Stashed changes
                     alert("Aeg on läbi!"); // Notify the user when the timer ends
 
                 }
@@ -128,3 +141,4 @@
     </script>
 </body>
 </html>
+``` 

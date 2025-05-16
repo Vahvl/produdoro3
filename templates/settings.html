@@ -50,5 +50,42 @@
         <li><a href="todolist">To-do list</a></li>
         <li><a href="settings" class="active">Settings</a></li>
     </ul>
+    <div class="content">
+        <h2>Seaded</h2>
+        <button id="audio-toggle" aria-label="Luba/Keela heli" style="background: none; border: none; cursor: pointer; outline: none;">
+            <span id="audio-icon" style="font-size: 48px; color: #888;">
+                <!-- Speaker SVG, crossed or not depending on state -->
+            </span>
+        </button>
+        <span id="audio-label" style="font-size: 20px; color: #333; margin-left: 10px;"></span>
+    </div>
+    <script>
+        localStorage.setItem("myGlobalBool", "true");
+
+        // Utility SVGs for speaker on/off
+        const speakerOnSVG = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+        const speakerOffSVG = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="1" x2="1" y2="23"></line></svg>`;
+
+        // Initialize audio setting from localStorage or default to true
+        function getAudioSetting() {
+            const value = localStorage.getItem("audioEnabled");
+            return value === null ? true : value === "true";
+        }
+        function setAudioSetting(enabled) {
+            localStorage.setItem("audioEnabled", enabled ? "true" : "false");
+        }
+        function updateAudioButton() {
+            const enabled = getAudioSetting();
+            document.getElementById("audio-icon").innerHTML = enabled ? speakerOnSVG : speakerOffSVG;
+            document.getElementById("audio-label").textContent = enabled ? "Heli sees" : "Heli väljas";
+        }
+        document.getElementById("audio-toggle").onclick = function() {
+            const enabled = getAudioSetting();
+            setAudioSetting(!enabled);
+            updateAudioButton();
+        };
+        // On page load, set correct icon
+        updateAudioButton();
+    </script>
 </body>
 </html>
