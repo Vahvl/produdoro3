@@ -71,7 +71,7 @@
 
     <script>
         let timerInterval;
-        let timerWindow;
+        let timerWindow = null;
         const alarmSound = document.getElementById("alarm-sound");
 
         function isAudioEnabled() {
@@ -85,55 +85,52 @@
             // Clear any existing timer
             clearInterval(timerInterval);
     
-            // Get the duration from the input field
-            const tunnid = document.getElementById("tunnid");
-            const minutid = document.getElementById("minutid");
-            const sekundid = document.getElementById("sekundid");
-            let timeLeft = parseInt(tunnid.value*3600) + parseInt(minutid.value*60) + parseInt(sekundid.value);
+            // Get the duration from the input fields
+            const tunnid = parseInt(document.getElementById("tunnid").value) || 0;
+            const minutid = parseInt(document.getElementById("minutid").value) || 0;
+            const sekundid = parseInt(document.getElementById("sekundid").value) || 0;
+            let timeLeft = tunnid * 3600 + minutid * 60 + sekundid;
     
             // Update the timer display
             const timerDisplay = document.getElementById("timer");
             timerDisplay.textContent = formatTime(timeLeft);
     
+            // Open or reuse the timer window
             if (!timerWindow || timerWindow.closed) {
-            timerWindow = window.open("", "TimerWindow", "width=300,height=200");
-        }
-        timerWindow.document.body.innerHTML = `<h1>Remaining Time</h1><div id="external-timer">${formatTime(timeLeft)}</div>`;
+                timerWindow = window.open("", "TimerWindow", "width=300,height=200");
+            }
+            timerWindow.document.body.innerHTML = `<h1>Remaining Time</h1><div id="external-timer">${formatTime(timeLeft)}</div>`;
+    
             // Start the countdown
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timerDisplay.textContent = formatTime(timeLeft);
 
+                // Update timer in the popup window
                 if (timerWindow && !timerWindow.closed) {
-                const externalTimer = timerWindow.document.getElementById("external-timer");
-                if (externalTimer) {
-                    externalTimer.textContent = formatTime(timeLeft);
+                    const externalTimer = timerWindow.document.getElementById("external-timer");
+                    if (externalTimer) {
+                        externalTimer.textContent = formatTime(timeLeft);
+                    }
                 }
-            }
+
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-<<<<<<< Updated upstream
-                    alarmSound.play().catch(error => {
-                    console.error("Failed to play alarm sound:", error);
-                });
-                if (timerWindow && !timerWindow.closed) {
-                    timerWindow.close();
-                }
-                
-=======
+                    if (timerWindow && !timerWindow.closed) {
+                        timerWindow.close();
+                    }
                     if (isAudioEnabled()) {
                         alarmSound.play().catch(error => {
                             console.error("Failed to play alarm sound:", error);
                         });
                     }
->>>>>>> Stashed changes
                     alert("Aeg on läbi!"); // Notify the user when the timer ends
-
                 }
             }, 1000);
         }
     
         function formatTime(seconds) {
+            if (seconds < 0) seconds = 0;
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = seconds % 60;
             return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
@@ -141,4 +138,3 @@
     </script>
 </body>
 </html>
-``` 
