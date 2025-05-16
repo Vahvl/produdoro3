@@ -79,6 +79,16 @@
             return value === null ? true : value === "true";
         }
 
+        // Color theme logic
+        function applyColors() {
+            const bg = localStorage.getItem("bgColor") || "#f0f8ff";
+            const sidebar = localStorage.getItem("sidebarColor") || "#333333";
+            document.body.style.backgroundColor = bg;
+            const sidebarEl = document.querySelector("ul");
+            if (sidebarEl) sidebarEl.style.backgroundColor = sidebar;
+        }
+        document.addEventListener("DOMContentLoaded", applyColors);
+
         function updateTimer(event) {
             event.preventDefault(); // Prevent form submission
     

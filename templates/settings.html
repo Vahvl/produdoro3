@@ -58,6 +58,20 @@
             </span>
         </button>
         <span id="audio-label" style="font-size: 20px; color: #333; margin-left: 10px;"></span>
+        <hr>
+        <h3>Värviskeem</h3>
+        <form id="color-form" onsubmit="saveColors(event)" style="margin-top: 10px;">
+            <label>
+                Tausta värv:
+                <input type="text" id="bg-color" placeholder="#f0f8ff" maxlength="7" style="width:90px;">
+            </label>
+            <label style="margin-left:20px;">
+                Küljepaani värv:
+                <input type="text" id="sidebar-color" placeholder="#333333" maxlength="7" style="width:90px;">
+            </label>
+            <button type="submit" style="margin-left:20px;">Salvesta</button>
+            <button type="button" id="reset-colors" style="margin-left:20px;">Taasta vaikimisi värvid</button>
+        </form>
     </div>
     <script>
         localStorage.setItem("myGlobalBool", "true");
@@ -87,6 +101,40 @@
         };
         // On page load, set correct icon
         updateAudioButton();
+
+        // Color theme logic
+        function applyColors() {
+            const bg = localStorage.getItem("bgColor") || "#f0f8ff";
+            const sidebar = localStorage.getItem("sidebarColor") || "#333333";
+            document.body.style.backgroundColor = bg;
+            // Sidebar is the first <ul> in body
+            const sidebarEl = document.querySelector("ul");
+            if (sidebarEl) sidebarEl.style.backgroundColor = sidebar;
+            // Set input values to current
+            document.getElementById("bg-color").value = bg;
+            document.getElementById("sidebar-color").value = sidebar;
+        }
+        function saveColors(event) {
+            event.preventDefault();
+            const bg = document.getElementById("bg-color").value.trim();
+            const sidebar = document.getElementById("sidebar-color").value.trim();
+            // Basic hex validation
+            const hexRegex = /^#([0-9a-fA-F]{6})$/;
+            if ((bg && !hexRegex.test(bg)) || (sidebar && !hexRegex.test(sidebar))) {
+                alert("Palun sisesta kehtivad HEX värvikoodid (nt #aabbcc)");
+                return;
+            }
+            if (bg) localStorage.setItem("bgColor", bg);
+            if (sidebar) localStorage.setItem("sidebarColor", sidebar);
+            applyColors();
+        }
+        document.getElementById("reset-colors").onclick = function() {
+            localStorage.setItem("bgColor", "#f0f8ff");
+            localStorage.setItem("sidebarColor", "#333333");
+            applyColors();
+        };
+        // Apply colors on page load
+        document.addEventListener("DOMContentLoaded", applyColors);
     </script>
 </body>
 </html>
