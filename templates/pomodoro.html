@@ -79,13 +79,48 @@
             return value === null ? true : value === "true";
         }
 
-        // Color theme logic
+        function hexToRgb(hex) {
+            hex = hex.replace('#', '');
+            if (hex.length === 3) {
+                hex = hex.split('').map(x => x + x).join('');
+            }
+            const num = parseInt(hex, 16);
+            return [num >> 16, (num >> 8) & 255, num & 255];
+        }
+        function rgbToHex([r, g, b]) {
+            return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        }
+        function adjustColor(hex, percent) {
+            let [r, g, b] = hexToRgb(hex);
+            r = Math.min(255, Math.max(0, Math.round(r + (percent/100)*255)));
+            g = Math.min(255, Math.max(0, Math.round(g + (percent/100)*255)));
+            b = Math.min(255, Math.max(0, Math.round(b + (percent/100)*255)));
+            return rgbToHex([r, g, b]);
+        }
         function applyColors() {
             const bg = localStorage.getItem("bgColor") || "#f0f8ff";
             const sidebar = localStorage.getItem("sidebarColor") || "#333333";
             document.body.style.backgroundColor = bg;
             const sidebarEl = document.querySelector("ul");
             if (sidebarEl) sidebarEl.style.backgroundColor = sidebar;
+            const activeColor = adjustColor(sidebar, 30);
+            const hoverColor = adjustColor(sidebar, 15);
+            let styleTag = document.getElementById("sidebar-dynamic-style");
+            if (!styleTag) {
+                styleTag = document.createElement("style");
+                styleTag.id = "sidebar-dynamic-style";
+                document.head.appendChild(styleTag);
+            }
+            styleTag.textContent = `
+                ul li a.active {
+                    background-color: ${activeColor} !important;
+                    color: white !important;
+                }
+                ul li a:hover:not(.active) {
+                    background-color: ${hoverColor} !important;
+                    color: white !important;
+                }
+            `;
         }
         document.addEventListener("DOMContentLoaded", applyColors);
 
@@ -148,3 +183,4 @@
     </script>
 </body>
 </html>
+``` 
