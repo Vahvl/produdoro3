@@ -109,16 +109,11 @@
             <input type="text" id="new-task" placeholder="Lisa uus ülesanne" required>
             <button type="submit">Lisa</button>
         </form>
-        <div class="board">
-            <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h2 contenteditable="true" onblur="saveColumnNames()">Tegemata</h2>
-            </div>
-            <div class="column" id="doing" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h2 contenteditable="true" onblur="saveColumnNames()">Tegemisel</h2>
-            </div>
-            <div class="column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h2 contenteditable="true" onblur="saveColumnNames()">Tehtud</h2>
-            </div>
+        <div style="display: flex; justify-content: flex-end; align-items: center;">
+            <button id="add-column-btn" style="margin-bottom: 10px; padding: 6px 14px; font-size: 18px; background: #e6e6fa; border: 1px solid #ccc; border-radius: 6px; cursor: pointer;">+ Lisa tulp</button>
+        </div>
+        <div class="board" id="board">
+            <!-- Tulbad lisatakse siia dünaamiliselt -->
         </div>
     </div>
     <script>
@@ -131,11 +126,221 @@
             if (sidebarEl) sidebarEl.style.backgroundColor = sidebar;
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            applyColors();
-            loadColumnNames();
+        // Column management
+        function getColumns() {
+            // Proovi laadida localStoragest, kui pole, kasuta vaikimisi kolme tulpa
+            const saved = localStorage.getItem("columns");
+            if (saved) return JSON.parse(saved);
+            return [
+                { id: "todo", name: "Tegemata" },
+                { id: "doing", name: "Tegemisel" },
+                { id: "done", name: "Tehtud" }
+            ];
+        }
+        function saveColumns(columns) {
+            localStorage.setItem("columns", JSON.stringify(columns));
+        }
+
+        function renderColumns() {
+            const board = document.getElementById("board");
+            board.innerHTML = "";
+            const columns = getColumns();
+            columns.forEach(col => {
+                const columnDiv = document.createElement("div");
+                columnDiv.className = "column";
+                columnDiv.id = col.id;
+                columnDiv.ondrop = drop;
+                columnDiv.ondragover = allowDrop;
+
+                // Header with editable name and remove button
+                const headerDiv = document.createElement("div");
+                headerDiv.style.display = "flex";
+                headerDiv.style.justifyContent = "space-between";
+                headerDiv.style.alignItems = "center";
+
+                const h2 = document.createElement("h2");
+                h2.contentEditable = "true";
+                h2.textContent = col.name;
+                h2.onblur = function() {
+                    saveColumnNames();
+                };
+                h2.style.flex = "1";
+                h2.style.margin = "0";
+                h2.style.paddingRight = "8px";
+
+                // Remove button (hide if only one column left)
+                const removeBtn = document.createElement("button");
+                removeBtn.innerHTML = "&#10006;";
+                removeBtn.title = "Eemalda tulp";
+                removeBtn.style.background = "none";
+                removeBtn.style.border = "none";
+                removeBtn.style.color = "#888";
+                removeBtn.style.fontSize = "22px";
+                removeBtn.style.cursor = "pointer";
+                removeBtn.style.marginLeft = "2px";
+                removeBtn.onclick = function() {
+                    removeColumn(col.id);
+                };
+                if (columns.length <= 1) removeBtn.style.display = "none";
+
+                headerDiv.appendChild(h2);
+                headerDiv.appendChild(removeBtn);
+
+                columnDiv.appendChild(headerDiv);
+
+                board.appendChild(columnDiv);
+            });
             loadTasks();
-        });
+            loadColumnNames();
+        }
+
+        function addColumn() {
+            const columns = getColumns();
+            // Genereeri unikaalne id
+            let idx = 1;
+            let newId;
+            do {
+                newId = "col" + idx++;
+            } while (columns.some(c => c.id === newId));
+            columns.push({ id: newId, name: "Uus tulp" });
+            saveColumns(columns);
+            saveColumnNames(); // et ka nimed oleksid sünkroonis
+            saveTasks(); // et ka tasks struktuur oleks sünkroonis
+            renderColumns();
+        }
+
+        function removeColumn(colId) {
+            let columns = getColumns();
+            if (columns.length <= 1) return; // Ära luba viimast eemaldada
+            columns = columns.filter(c => c.id !== colId);
+            saveColumns(columns);
+
+            // Eemalda ka selle tulba ülesanded ja nimi
+            const tasks = JSON.parse(localStorage.getItem("tasks") || "{}");
+            delete tasks[colId];
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+
+            const columnNames = JSON.parse(localStorage.getItem("columnNames") || "{}");
+            delete columnNames[colId];
+            localStorage.setItem("columnNames", JSON.stringify(columnNames));
+
+            renderColumns();
+        }
+
+        document.getElementById("add-column-btn").onclick = addColumn;
+
+        // Muudetud: tasks ja nimed arvestavad dünaamilisi tulpi
+        function saveTasks() {
+            const columns = getColumns();
+            const tasks = {};
+            columns.forEach(column => {
+                const colDiv = document.getElementById(column.id);
+                if (!colDiv) return;
+                tasks[column.id] = [];
+                colDiv.querySelectorAll(".task-card").forEach(task => {
+                    tasks[column.id].push({ id: task.id, text: task.querySelector("span").textContent });
+                });
+            });
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const columns = getColumns();
+            const tasks = JSON.parse(localStorage.getItem("tasks")) || {};
+            columns.forEach(column => {
+                const colDiv = document.getElementById(column.id);
+                if (!colDiv) return;
+                // Eemalda vanad taskid
+                Array.from(colDiv.querySelectorAll(".task-card")).forEach(e => e.remove());
+                (tasks[column.id] || []).forEach(task => {
+                    const taskCard = document.createElement("div");
+                    taskCard.id = task.id;
+                    taskCard.className = "task-card";
+                    taskCard.draggable = true;
+                    taskCard.ondragstart = drag;
+
+                    // Add task text
+                    const taskTextElement = document.createElement("span");
+                    taskTextElement.textContent = task.text;
+                    taskCard.appendChild(taskTextElement);
+
+                    // Add delete button
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "✖";
+                    deleteButton.style.cssText = "float: right; background: none; color: grey; border: none; font-size: 16px; cursor: pointer;";
+                    deleteButton.onclick = () => {
+                        taskCard.remove();
+                        saveTasks();
+                    };
+                    taskCard.appendChild(deleteButton);
+
+                    colDiv.appendChild(taskCard);
+                });
+            });
+        }
+
+        function saveColumnNames() {
+            const columns = getColumns();
+            const columnNames = {};
+            columns.forEach(column => {
+                const colDiv = document.getElementById(column.id);
+                if (!colDiv) return;
+                const h2 = colDiv.querySelector("h2");
+                columnNames[column.id] = h2 ? h2.textContent.trim() : column.name;
+            });
+            localStorage.setItem("columnNames", JSON.stringify(columnNames));
+        }
+
+        function loadColumnNames() {
+            const columns = getColumns();
+            const columnNames = JSON.parse(localStorage.getItem("columnNames")) || {};
+            columns.forEach(column => {
+                const colDiv = document.getElementById(column.id);
+                if (!colDiv) return;
+                const h2 = colDiv.querySelector("h2");
+                if (h2 && columnNames[column.id]) {
+                    h2.textContent = columnNames[column.id];
+                }
+            });
+        }
+
+        // Muuda addTask, et lisaks alati esimesse tulpa
+        function addTask(event) {
+            event.preventDefault();
+            const taskInput = document.getElementById("new-task");
+            const taskText = taskInput.value.trim();
+            if (taskText) {
+                const taskId = `task-${Date.now()}`;
+                const taskCard = document.createElement("div");
+                taskCard.id = taskId;
+                taskCard.className = "task-card";
+                taskCard.draggable = true;
+                taskCard.ondragstart = drag;
+
+                // Add task text
+                const taskTextElement = document.createElement("span");
+                taskTextElement.textContent = taskText;
+                taskCard.appendChild(taskTextElement);
+
+                // Add delete button
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "✖";
+                deleteButton.style.cssText = "float: right; background: none; color: grey; border: none; font-size: 16px; cursor: pointer;";
+                deleteButton.onclick = () => {
+                    taskCard.remove();
+                    saveTasks();
+                };
+                taskCard.appendChild(deleteButton);
+
+                // Lisa esimese tulpa
+                const columns = getColumns();
+                if (columns.length > 0) {
+                    document.getElementById(columns[0].id).appendChild(taskCard);
+                }
+                taskInput.value = "";
+                saveTasks();
+            }
+        }
 
         function allowDrop(ev) {
             ev.preventDefault();
@@ -174,103 +379,10 @@
             saveTasks();
         }
 
-        function addTask(event) {
-            event.preventDefault();
-            const taskInput = document.getElementById("new-task");
-            const taskText = taskInput.value.trim();
-            if (taskText) {
-                const taskId = `task-${Date.now()}`;
-                const taskCard = document.createElement("div");
-                taskCard.id = taskId;
-                taskCard.className = "task-card";
-                taskCard.draggable = true;
-                taskCard.ondragstart = drag;
-
-                // Add task text
-                const taskTextElement = document.createElement("span");
-                taskTextElement.textContent = taskText;
-                taskCard.appendChild(taskTextElement);
-
-                // Add delete button
-                const deleteButton = document.createElement("button");
-                deleteButton.textContent = "✖";
-                deleteButton.style.cssText = "float: right; background: none; color: grey; border: none; font-size: 16px; cursor: pointer;";
-                deleteButton.onclick = () => {
-                    taskCard.remove();
-                    saveTasks();
-                };
-                taskCard.appendChild(deleteButton);
-
-                document.getElementById("todo").appendChild(taskCard);
-                taskInput.value = "";
-                saveTasks();
-            }
-        }
-
-        function saveTasks() {
-            const columns = document.querySelectorAll(".column");
-            const tasks = {};
-            columns.forEach(column => {
-                const columnId = column.id;
-                tasks[columnId] = [];
-                column.querySelectorAll(".task-card").forEach(task => {
-                    // Save only the task text, not the delete button
-                    tasks[columnId].push({ id: task.id, text: task.querySelector("span").textContent });
-                });
-            });
-            localStorage.setItem("tasks", JSON.stringify(tasks));
-        }
-
-        function loadTasks() {
-            const tasks = JSON.parse(localStorage.getItem("tasks")) || {};
-            Object.keys(tasks).forEach(columnId => {
-                const column = document.getElementById(columnId);
-                tasks[columnId].forEach(task => {
-                    const taskCard = document.createElement("div");
-                    taskCard.id = task.id;
-                    taskCard.className = "task-card";
-                    taskCard.draggable = true;
-                    taskCard.ondragstart = drag;
-
-                    // Add task text
-                    const taskTextElement = document.createElement("span");
-                    taskTextElement.textContent = task.text;
-                    taskCard.appendChild(taskTextElement);
-
-                    // Add delete button
-                    const deleteButton = document.createElement("button");
-                    deleteButton.textContent = "✖";
-                    deleteButton.style.cssText = "float: right; background: none; color: grey; border: none; font-size: 16px; cursor: pointer;";
-                    deleteButton.onclick = () => {
-                        taskCard.remove();
-                        saveTasks();
-                    };
-                    taskCard.appendChild(deleteButton);
-
-                    column.appendChild(taskCard);
-                });
-            });
-        }
-
-        function saveColumnNames() {
-            const columns = document.querySelectorAll(".column h2");
-            const columnNames = {};
-            columns.forEach(column => {
-                const columnId = column.parentElement.id;
-                columnNames[columnId] = column.textContent.trim();
-            });
-            localStorage.setItem("columnNames", JSON.stringify(columnNames));
-        }
-
-        function loadColumnNames() {
-            const columnNames = JSON.parse(localStorage.getItem("columnNames")) || {};
-            Object.keys(columnNames).forEach(columnId => {
-                const columnHeader = document.querySelector(`#${columnId} h2`);
-                if (columnHeader) {
-                    columnHeader.textContent = columnNames[columnId];
-                }
-            });
-        }
+        document.addEventListener("DOMContentLoaded", () => {
+            applyColors();
+            renderColumns();
+        });
     </script>
 </body>
 </html>
