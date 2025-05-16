@@ -71,6 +71,7 @@
 
     <script>
         let timerInterval;
+        let timerWindow;
         const alarmSound = document.getElementById("alarm-sound");
 
         function updateTimer(event) {
@@ -89,17 +90,32 @@
             const timerDisplay = document.getElementById("timer");
             timerDisplay.textContent = formatTime(timeLeft);
     
+            if (!timerWindow || timerWindow.closed) {
+            timerWindow = window.open("", "TimerWindow", "width=300,height=200");
+        }
+        timerWindow.document.body.innerHTML = `<h1>Remaining Time</h1><div id="external-timer">${formatTime(timeLeft)}</div>`;
             // Start the countdown
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timerDisplay.textContent = formatTime(timeLeft);
-    
+
+                if (timerWindow && !timerWindow.closed) {
+                const externalTimer = timerWindow.document.getElementById("external-timer");
+                if (externalTimer) {
+                    externalTimer.textContent = formatTime(timeLeft);
+                }
+            }
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     alarmSound.play().catch(error => {
                     console.error("Failed to play alarm sound:", error);
                 });
+                if (timerWindow && !timerWindow.closed) {
+                    timerWindow.close();
+                }
+                
                     alert("Aeg on läbi!"); // Notify the user when the timer ends
+
                 }
             }, 1000);
         }
