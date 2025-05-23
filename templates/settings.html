@@ -60,17 +60,20 @@
         <span id="audio-label" style="font-size: 20px; color: #333; margin-left: 10px;"></span>
         <hr>
         <h3>Värviskeem</h3>
-        <form id="color-form" onsubmit="saveColors(event)" style="margin-top: 10px;">
+        <form id="theme-form" onsubmit="changeTheme(event)" style="margin-top: 10px;">
             <label>
-                Tausta värv:
-                <input type="text" id="bg-color" placeholder="#f0f8ff" maxlength="7" style="width:90px;">
+                <input type="radio" name="theme" value="default" checked>
+                Roheline
             </label>
             <label style="margin-left:20px;">
-                Küljepaani värv:
-                <input type="text" id="sidebar-color" placeholder="#333333" maxlength="7" style="width:90px;">
+                <input type="radio" name="theme" value="darkblue">
+                Tumesinine
             </label>
-            <button type="submit" style="margin-left:20px;">Salvesta</button>
-            <button type="button" id="reset-colors" style="margin-left:20px;">Taasta vaikimisi värvid</button>
+            <label style="margin-left:20px;">
+                <input type="radio" name="theme" value="swedbank">
+                Oranž
+            </label>
+            <button type="submit" style="margin-left:20px;">Muuda värvi</button>
         </form>
     </div>
     <script>
@@ -102,34 +105,42 @@
         // On page load, set correct icon
         updateAudioButton();
 
-        // Color theme logic
-        function hexToRgb(hex) {
-            hex = hex.replace('#', '');
-            if (hex.length === 3) {
-                hex = hex.split('').map(x => x + x).join('');
+        // Teemade definitsioonid
+        const THEMES = {
+            default: {
+                bgColor: "#f0f8ff",
+                sidebarColor: "#333333",
+                accent: "#04AA6D",
+                accentHover: "#037a50"
+            },
+            darkblue: {
+                bgColor: "#eaf2fb",        // much lighter blue background
+                sidebarColor: "#16213a",   // much darker sidebar
+                accent: "#3fa7ff",
+                accentHover: "#2677b7"
+            },
+            swedbank: {
+                bgColor: "#fff7f0",
+                sidebarColor: "#ff8000",
+                accent: "#ffb347",
+                accentHover: "#ff9900"
             }
-            const num = parseInt(hex, 16);
-            return [num >> 16, (num >> 8) & 255, num & 255];
+        };
+
+        function getTheme() {
+            return localStorage.getItem("theme") || "default";
         }
-        function rgbToHex([r, g, b]) {
-            return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        function setTheme(theme) {
+            localStorage.setItem("theme", theme);
         }
-        function adjustColor(hex, percent) {
-            let [r, g, b] = hexToRgb(hex);
-            r = Math.min(255, Math.max(0, Math.round(r + (percent/100)*255)));
-            g = Math.min(255, Math.max(0, Math.round(g + (percent/100)*255)));
-            b = Math.min(255, Math.max(0, Math.round(b + (percent/100)*255)));
-            return rgbToHex([r, g, b]);
-        }
-        function applyColors() {
-            const bg = localStorage.getItem("bgColor") || "#f0f8ff";
-            const sidebar = localStorage.getItem("sidebarColor") || "#333333";
-            document.body.style.backgroundColor = bg;
+
+        function applyTheme() {
+            const theme = THEMES[getTheme()] || THEMES.default;
+            document.body.style.backgroundColor = theme.bgColor;
             const sidebarEl = document.querySelector("ul");
-            if (sidebarEl) sidebarEl.style.backgroundColor = sidebar;
-            // Aktiivne ja hover värv arvutatakse sidebar värvist
-            const activeColor = adjustColor(sidebar, 30);
-            const hoverColor = adjustColor(sidebar, 15);
+            if (sidebarEl) sidebarEl.style.backgroundColor = theme.sidebarColor;
+
+            // Lisa või uuenda dünaamiline stiil
             let styleTag = document.getElementById("sidebar-dynamic-style");
             if (!styleTag) {
                 styleTag = document.createElement("style");
@@ -138,39 +149,39 @@
             }
             styleTag.textContent = `
                 ul li a.active {
-                    background-color: ${activeColor} !important;
+                    background-color: ${theme.accent} !important;
                     color: white !important;
                 }
                 ul li a:hover:not(.active) {
-                    background-color: ${hoverColor} !important;
+                    background-color: ${theme.accentHover} !important;
                     color: white !important;
                 }
+                .add-task-form button, #add-column-btn {
+                    background-color: ${theme.accent} !important;
+                }
+                .add-task-form button:hover, #add-column-btn:hover {
+                    background-color: ${theme.accentHover} !important;
+                }
             `;
-            // Set input values to current
-            document.getElementById("bg-color").value = bg;
-            document.getElementById("sidebar-color").value = sidebar;
+
+            // Märgi valitud teema raadionupp
+            const radios = document.querySelectorAll('input[name="theme"]');
+            radios.forEach(r => r.checked = (r.value === getTheme()));
         }
-        function saveColors(event) {
+
+        function changeTheme(event) {
             event.preventDefault();
-            const bg = document.getElementById("bg-color").value.trim();
-            const sidebar = document.getElementById("sidebar-color").value.trim();
-            // Basic hex validation
-            const hexRegex = /^#([0-9a-fA-F]{6})$/;
-            if ((bg && !hexRegex.test(bg)) || (sidebar && !hexRegex.test(sidebar))) {
-                alert("Palun sisesta kehtivad HEX värvikoodid (nt #aabbcc)");
-                return;
-            }
-            if (bg) localStorage.setItem("bgColor", bg);
-            if (sidebar) localStorage.setItem("sidebarColor", sidebar);
-            applyColors();
+            const selected = document.querySelector('input[name="theme"]:checked').value;
+            setTheme(selected);
+            applyTheme();
         }
-        document.getElementById("reset-colors").onclick = function() {
-            localStorage.setItem("bgColor", "#f0f8ff");
-            localStorage.setItem("sidebarColor", "#333333");
-            applyColors();
-        };
-        // Apply colors on page load
-        document.addEventListener("DOMContentLoaded", applyColors);
+
+        // Rakenda teema lehe laadimisel
+        document.addEventListener("DOMContentLoaded", () => {
+            applyTheme();
+            // ...võib jääda ka muu init kood...
+            updateAudioButton();
+        });
     </script>
 </body>
 </html>

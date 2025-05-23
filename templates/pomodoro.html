@@ -79,32 +79,39 @@
             return value === null ? true : value === "true";
         }
 
-        function hexToRgb(hex) {
-            hex = hex.replace('#', '');
-            if (hex.length === 3) {
-                hex = hex.split('').map(x => x + x).join('');
+        // Teemade definitsioonid
+        const THEMES = {
+            default: {
+                bgColor: "#f0f8ff",
+                sidebarColor: "#333333",
+                accent: "#04AA6D",
+                accentHover: "#037a50"
+            },
+            darkblue: {
+                bgColor: "#eaf2fb",        // much lighter blue background
+                sidebarColor: "#16213a",   // much darker sidebar
+                accent: "#3fa7ff",
+                accentHover: "#2677b7"
+            },
+            swedbank: {
+                bgColor: "#fff7f0",
+                sidebarColor: "#ff8000",
+                accent: "#ffb347",
+                accentHover: "#ff9900"
             }
-            const num = parseInt(hex, 16);
-            return [num >> 16, (num >> 8) & 255, num & 255];
+        };
+
+        function getTheme() {
+            return localStorage.getItem("theme") || "default";
         }
-        function rgbToHex([r, g, b]) {
-            return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-        }
-        function adjustColor(hex, percent) {
-            let [r, g, b] = hexToRgb(hex);
-            r = Math.min(255, Math.max(0, Math.round(r + (percent/100)*255)));
-            g = Math.min(255, Math.max(0, Math.round(g + (percent/100)*255)));
-            b = Math.min(255, Math.max(0, Math.round(b + (percent/100)*255)));
-            return rgbToHex([r, g, b]);
-        }
-        function applyColors() {
-            const bg = localStorage.getItem("bgColor") || "#f0f8ff";
-            const sidebar = localStorage.getItem("sidebarColor") || "#333333";
-            document.body.style.backgroundColor = bg;
+
+        function applyTheme() {
+            const theme = THEMES[getTheme()] || THEMES.default;
+            document.body.style.backgroundColor = theme.bgColor;
             const sidebarEl = document.querySelector("ul");
-            if (sidebarEl) sidebarEl.style.backgroundColor = sidebar;
-            const activeColor = adjustColor(sidebar, 30);
-            const hoverColor = adjustColor(sidebar, 15);
+            if (sidebarEl) sidebarEl.style.backgroundColor = theme.sidebarColor;
+
+            // Lisa või uuenda dünaamiline stiil
             let styleTag = document.getElementById("sidebar-dynamic-style");
             if (!styleTag) {
                 styleTag = document.createElement("style");
@@ -113,16 +120,23 @@
             }
             styleTag.textContent = `
                 ul li a.active {
-                    background-color: ${activeColor} !important;
+                    background-color: ${theme.accent} !important;
                     color: white !important;
                 }
                 ul li a:hover:not(.active) {
-                    background-color: ${hoverColor} !important;
+                    background-color: ${theme.accentHover} !important;
                     color: white !important;
+                }
+                .add-task-form button, #add-column-btn {
+                    background-color: ${theme.accent} !important;
+                }
+                .add-task-form button:hover, #add-column-btn:hover {
+                    background-color: ${theme.accentHover} !important;
                 }
             `;
         }
-        document.addEventListener("DOMContentLoaded", applyColors);
+
+        document.addEventListener("DOMContentLoaded", applyTheme);
 
         function updateTimer(event) {
             event.preventDefault(); // Prevent form submission
@@ -183,4 +197,3 @@
     </script>
 </body>
 </html>
-``` 
