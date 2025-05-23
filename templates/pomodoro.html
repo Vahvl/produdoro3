@@ -44,7 +44,6 @@
     </style>
 </head>
 <body>
-
     <ul>
         <li><a class="index" href="/">Koduleht</a></li>
         <li><a href="pomodoro" class="active">Taimer</a></li>
@@ -52,7 +51,6 @@
         <li><a href="settings">Settings</a></li>
     </ul>
     <div class="content">
-        
         <h1>Pomodoro Timer</h1>
         <p>Aega jäänud:</p>
         <div id="timer">0:00</div>
@@ -62,138 +60,13 @@
             <input type="number" id="sekundid" placeholder="Sekundid">
             <button id="start-btn" type="submit">Käivita taimer!</button>
         </form>
-
-
+        <!-- Progress bar -->
+        <div id="progress-container" style="width: 100%; background-color: #ddd; height: 20px; border-radius: 10px; margin-top: 20px;">
+        <div id="progress-bar" style="width: 100%; height: 100%; background-color: #04AA6D; border-radius: 10px;"></div>
+        </div>
     </div>
-    
     <!-- Audio element for the alarm sound -->
     <audio id="alarm-sound" src="/static/alarm.mp3"></audio>
-
-    <script>
-        let timerInterval;
-        let timerWindow = null;
-        const alarmSound = document.getElementById("alarm-sound");
-
-        function isAudioEnabled() {
-            const value = localStorage.getItem("audioEnabled");
-            return value === null ? true : value === "true";
-        }
-
-        // Teemade definitsioonid
-        const THEMES = {
-            default: {
-                bgColor: "#f0f8ff",
-                sidebarColor: "#333333",
-                accent: "#04AA6D",
-                accentHover: "#037a50"
-            },
-            darkblue: {
-                bgColor: "#eaf2fb",        // much lighter blue background
-                sidebarColor: "#16213a",   // much darker sidebar
-                accent: "#3fa7ff",
-                accentHover: "#2677b7"
-            },
-            swedbank: {
-                bgColor: "#fff7f0",
-                sidebarColor: "#ff8000",
-                accent: "#ffb347",
-                accentHover: "#ff9900"
-            }
-        };
-
-        function getTheme() {
-            return localStorage.getItem("theme") || "default";
-        }
-
-        function applyTheme() {
-            const theme = THEMES[getTheme()] || THEMES.default;
-            document.body.style.backgroundColor = theme.bgColor;
-            const sidebarEl = document.querySelector("ul");
-            if (sidebarEl) sidebarEl.style.backgroundColor = theme.sidebarColor;
-
-            // Lisa või uuenda dünaamiline stiil
-            let styleTag = document.getElementById("sidebar-dynamic-style");
-            if (!styleTag) {
-                styleTag = document.createElement("style");
-                styleTag.id = "sidebar-dynamic-style";
-                document.head.appendChild(styleTag);
-            }
-            styleTag.textContent = `
-                ul li a.active {
-                    background-color: ${theme.accent} !important;
-                    color: white !important;
-                }
-                ul li a:hover:not(.active) {
-                    background-color: ${theme.accentHover} !important;
-                    color: white !important;
-                }
-                .add-task-form button, #add-column-btn {
-                    background-color: ${theme.accent} !important;
-                }
-                .add-task-form button:hover, #add-column-btn:hover {
-                    background-color: ${theme.accentHover} !important;
-                }
-            `;
-        }
-
-        document.addEventListener("DOMContentLoaded", applyTheme);
-
-        function updateTimer(event) {
-            event.preventDefault(); // Prevent form submission
-    
-            // Clear any existing timer
-            clearInterval(timerInterval);
-    
-            // Get the duration from the input fields
-            const tunnid = parseInt(document.getElementById("tunnid").value) || 0;
-            const minutid = parseInt(document.getElementById("minutid").value) || 0;
-            const sekundid = parseInt(document.getElementById("sekundid").value) || 0;
-            let timeLeft = tunnid * 3600 + minutid * 60 + sekundid;
-    
-            // Update the timer display
-            const timerDisplay = document.getElementById("timer");
-            timerDisplay.textContent = formatTime(timeLeft);
-    
-            // Open or reuse the timer window
-            if (!timerWindow || timerWindow.closed) {
-                timerWindow = window.open("", "TimerWindow", "width=300,height=200");
-            }
-            timerWindow.document.body.innerHTML = `<h1>Remaining Time</h1><div id="external-timer">${formatTime(timeLeft)}</div>`;
-    
-            // Start the countdown
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                timerDisplay.textContent = formatTime(timeLeft);
-
-                // Update timer in the popup window
-                if (timerWindow && !timerWindow.closed) {
-                    const externalTimer = timerWindow.document.getElementById("external-timer");
-                    if (externalTimer) {
-                        externalTimer.textContent = formatTime(timeLeft);
-                    }
-                }
-
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    if (timerWindow && !timerWindow.closed) {
-                        timerWindow.close();
-                    }
-                    if (isAudioEnabled()) {
-                        alarmSound.play().catch(error => {
-                            console.error("Failed to play alarm sound:", error);
-                        });
-                    }
-                    alert("Aeg on läbi!"); // Notify the user when the timer ends
-                }
-            }, 1000);
-        }
-    
-        function formatTime(seconds) {
-            if (seconds < 0) seconds = 0;
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
-        }
-    </script>
+    <script src="/static/pomodoro.js"></script>
 </body>
 </html>
