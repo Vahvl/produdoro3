@@ -41,6 +41,30 @@
             background-color: #575757;
             color: white;
         }
+        #pause-btn {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #04AA6D; /* Default accent color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #pause-btn:hover {
+            background-color: #037a50; /* Default accent hover color */
+        }
+        #start-btn {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #04AA6D; /* Default accent color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #start-btn:hover {
+            background-color: #037a50; /* Default accent hover color */
+        }
     </style>
 </head>
 <body>
@@ -54,6 +78,7 @@
         <h1>Pomodoro Timer</h1>
         <p>Aega jäänud:</p>
         <div id="timer">0:00</div>
+        <button id="pause-btn" type="button" onclick="togglePause()">Paus</button>
         <form onsubmit="updateTimer(event)">
             <input type="number" id="tunnid" placeholder="Tunnid">
             <input type="number" id="minutid" placeholder="Minutid">
@@ -67,6 +92,274 @@
     </div>
     <!-- Audio element for the alarm sound -->
     <audio id="alarm-sound" src="/static/alarm.mp3"></audio>
-    <script src="/static/pomodoro.js"></script>
+    <script>
+        let timerInterval;
+        let progressBarInterval;
+        let timerWindow = null;
+    
+        const THEMES = {
+            default: {
+                bgColor: "#f0f8ff",
+                sidebarColor: "#333333",
+                accent: "#04AA6D",
+                accentHover: "#037a50"
+            },
+            darkblue: {
+                bgColor: "#eaf2fb",
+                sidebarColor: "#16213a",
+                accent: "#3fa7ff",
+                accentHover: "#2677b7"
+            },
+            swedbank: {
+                bgColor: "#fff7f0",
+                sidebarColor: "#ff8000",
+                accent: "#ffb347",
+                accentHover: "#ff9900"
+            }
+        };
+    
+        function getTheme() {
+            return localStorage.getItem("theme") || "default";
+        }
+    
+        function applyTheme() {
+            const theme = THEMES[getTheme()] || THEMES.default;
+            document.body.style.backgroundColor = theme.bgColor;
+            const sidebarEl = document.querySelector("ul");
+            if (sidebarEl) sidebarEl.style.backgroundColor = theme.sidebarColor;
+    
+            const progressBar = document.getElementById("progress-bar");
+            if (progressBar) {
+                progressBar.style.backgroundColor = theme.sidebarColor;
+            }
+            const pauseBtn = document.getElementById("pause-btn");
+            if (pauseBtn) {
+                pauseBtn.style.backgroundColor = theme.accent;
+                pauseBtn.style.color = "white";
+            }
+            const startBtn = document.getElementById("start-btn");
+            if (startBtn) {
+                startBtn.style.backgroundColor = theme.accent;
+                startBtn.style.color = "white";
+            }
+            let styleTag = document.getElementById("sidebar-dynamic-style");
+            if (!styleTag) {
+                styleTag = document.createElement("style");
+                styleTag.id = "sidebar-dynamic-style";
+                document.head.appendChild(styleTag);
+            }
+            styleTag.textContent = `
+                ul li a.active {
+                    background-color: ${theme.accent} !important;
+                    color: white !important;
+                }
+                ul li a:hover:not(.active) {
+                    background-color: ${theme.accentHover} !important;
+                    color: white !important;
+                }
+                .add-task-form button, #add-column-btn {
+                    background-color: ${theme.accent} !important;
+                }
+                .add-task-form button:hover, #add-column-btn:hover {
+                    background-color: ${theme.accentHover} !important;
+                }
+                #pause-btn:hover {
+                    background-color: ${theme.accentHover} !important;
+                }
+                #start-btn:hover {
+                    background-color: ${theme.accentHover} !important;
+                }
+            `;
+        }
+    
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+        }
+    
+        function updateTimer(event) {
+            event.preventDefault();
+            const startBtn = document.getElementById("start-btn");
+
+            if (startBtn.textContent === "Peata taimer!") {
+                clearInterval(timerInterval);
+                clearInterval(progressBarInterval);
+                localStorage.removeItem("remainingTime");
+
+                const timerDisplay = document.getElementById("timer");
+                if (timerDisplay) timerDisplay.textContent = "0:00";
+
+                const progressBar = document.getElementById("progress-bar");
+                if (progressBar) progressBar.style.width = "100%";
+
+                if (timerWindow && !timerWindow.closed) {
+                    timerWindow.close();
+                }
+
+                startBtn.textContent = "Käivita taimer!";
+                return;
+            }
+
+            const tunnid = parseInt(document.getElementById("tunnid").value) || 0;
+            const minutid = parseInt(document.getElementById("minutid").value) || 0;
+            const sekundid = parseInt(document.getElementById("sekundid").value) || 0;
+
+            const totalSeconds = tunnid * 3600 + minutid * 60 + sekundid;
+            localStorage.setItem("remainingTime", totalSeconds);
+
+            startTimer(totalSeconds);
+            openTimerWindow(totalSeconds);
+
+            startBtn.textContent = "Peata taimer!";
+        }
+    
+        function startTimer(duration) {
+            let remainingTime = duration;
+            const startBtn = document.getElementById("start-btn");
+            startProgressBarUpdater(duration);
+    
+            timerInterval = setInterval(() => {
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(progressBarInterval);
+                    localStorage.removeItem("remainingTime");
+    
+                    if (timerWindow && !timerWindow.closed) {
+                        timerWindow.close();
+                    }
+    
+                    alert("Aeg on läbi!");
+                    startBtn.textContent = "Käivita taimer!";
+                    return;
+                }
+    
+                remainingTime--;
+                localStorage.setItem("remainingTime", remainingTime);
+                updateTimerDisplay(remainingTime);
+            }, 1000);
+        }
+    
+        function startProgressBarUpdater(duration) {
+            const progressBar = document.getElementById("progress-bar");
+            let elapsedTime = 0;
+    
+            progressBarInterval = setInterval(() => {
+                elapsedTime += 0.1;
+                const progressPercentage = ((duration - elapsedTime) / duration) * 100;
+    
+                if (progressPercentage <= 0) {
+                    progressBar.style.width = "0%";
+                    clearInterval(progressBarInterval);
+                } else {
+                    progressBar.style.width = `${progressPercentage}%`;
+                }
+    
+                if (timerWindow && !timerWindow.closed) {
+                    const externalProgressBar = timerWindow.document.getElementById("external-progress-bar");
+                    if (externalProgressBar) {
+                        externalProgressBar.style.width = `${progressPercentage}%`;
+                    }
+                }
+            }, 100);
+        }
+    
+        function updateTimerDisplay(seconds) {
+            const timerDisplay = document.getElementById("timer");
+            if (timerDisplay) {
+                timerDisplay.textContent = formatTime(seconds);
+            }
+    
+            if (timerWindow && !timerWindow.closed) {
+                const externalTimer = timerWindow.document.getElementById("external-timer");
+                if (externalTimer) {
+                    externalTimer.textContent = formatTime(seconds);
+                }
+            }
+        }
+    
+        function togglePause() {
+            const pauseBtn = document.getElementById("pause-btn");
+            if (pauseBtn.textContent === "Paus") {
+                clearInterval(timerInterval);
+                clearInterval(progressBarInterval);
+                pauseBtn.textContent = "Jätka";
+            } else {
+                const remainingTime = parseInt(localStorage.getItem("remainingTime"));
+                if (!isNaN(remainingTime) && remainingTime > 0) {
+                    startTimer(remainingTime);
+                }
+                pauseBtn.textContent = "Paus";
+            }
+        
+            if (timerWindow && !timerWindow.closed) {
+                const externalPauseBtn = timerWindow.document.getElementById("external-pause-btn");
+                if (externalPauseBtn) {
+                    externalPauseBtn.textContent = pauseBtn.textContent;
+                }
+            }
+        }
+    
+        function openTimerWindow(duration) {
+            if (!timerWindow || timerWindow.closed) {
+                timerWindow = window.open("", "TimerWindow", "width=300,height=200");
+                const theme = THEMES[getTheme()] || THEMES.default;
+    
+                timerWindow.document.body.innerHTML = `
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            background-color: ${theme.bgColor};
+                        }
+                        h1 {
+                            font-size: 24px;
+                            color: ${theme.sidebarColor};
+                        }
+                        #external-progress-container {
+                            width: 100%;
+                            background-color: #ddd;
+                            height: 20px;
+                            border-radius: 10px;
+                            margin-top: 20px;
+                        }
+                        #external-progress-bar {
+                            width: 100%;
+                            height: 100%;
+                            background-color: ${theme.sidebarColor};
+                            border-radius: 10px;
+                        }
+                        #external-pause-btn {
+                            margin-top: 10px;
+                            padding: 10px;
+                            background-color: ${theme.accent};
+                            color: white;
+                            border: none;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        }
+                        #external-pause-btn:hover {
+                            background-color: ${theme.accentHover};
+                        }
+                    </style>
+                    <h1>Remaining Time</h1>
+                    <div id="external-timer">${formatTime(duration)}</div>
+                    <div id="external-progress-container">
+                        <div id="external-progress-bar"></div>
+                    </div>
+                    <button id="external-pause-btn" onclick="window.opener.togglePause()">Paus</button>
+                `;
+            }
+        }
+    
+        document.addEventListener("DOMContentLoaded", () => {
+            applyTheme();
+            const remainingTime = parseInt(localStorage.getItem("remainingTime"));
+            if (!isNaN(remainingTime) && remainingTime > 0) {
+                startTimer(remainingTime);
+            }
+        });
+    </script>
 </body>
 </html>
