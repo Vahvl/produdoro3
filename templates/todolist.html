@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <title>Minu Ülesannete Töölaud</title>
     <style>
+        /* Üldine stiil */
         body {
             font-family: sans-serif;
             margin: 0;
             padding: 0;
-            background: #f0f8ff; /* Light blue background */
+            background: #f0f8ff;
         }
         .content {
-            margin-left: 22%; /* Adjusted for sidebar */
+            margin-left: 22%;
             padding: 20px;
         }
         .board {
@@ -21,7 +22,7 @@
         }
         .column {
             flex: 1;
-            background-color: #e6e6fa; /* Lavender background */
+            background-color: #e6e6fa;
             padding: 10px;
             border-radius: 8px;
             min-height: 400px;
@@ -30,17 +31,17 @@
         .column h2 {
             text-align: center;
             color: #333;
-            cursor: pointer; /* Indicate editability */
-            background-color: transparent; /* Default background */
+            cursor: pointer;
+            background-color: transparent;
             padding: 5px;
             border-radius: 4px;
-            transition: background-color 0.3s ease; /* Smooth transition */
+            transition: background-color 0.3s ease;
         }
         .column h2:hover {
-            background-color: #d3d3d3; /* Grey background on hover */
+            background-color: #d3d3d3;
         }
         .column h2:focus {
-            background-color: transparent; /* Revert to transparent when clicked */
+            background-color: transparent;
         }
         .task-card {
             background: white;
@@ -147,7 +148,7 @@
             margin: 0;
             padding: 0;
             width: 20%;
-            background-color: #333; /* Dark sidebar */
+            background-color: #333;
             position: fixed;
             height: 100%;
             overflow: auto;
@@ -209,7 +210,7 @@
         </div>
     </div>
     <script>
-        // Teemade definitsioonid
+        // --- Teemade definitsioonid ---
         const THEMES = {
             default: {
                 bgColor: "#f0f8ff",
@@ -218,8 +219,8 @@
                 accentHover: "#037a50"
             },
             darkblue: {
-                bgColor: "#eaf2fb",        // much lighter blue background
-                sidebarColor: "#16213a",   // much darker sidebar
+                bgColor: "#eaf2fb",
+                sidebarColor: "#16213a",
                 accent: "#3fa7ff",
                 accentHover: "#2677b7"
             },
@@ -231,17 +232,16 @@
             }
         };
 
+        // --- Teema rakendamine ---
         function getTheme() {
             return localStorage.getItem("theme") || "default";
         }
-
         function applyTheme() {
             const theme = THEMES[getTheme()] || THEMES.default;
             document.body.style.backgroundColor = theme.bgColor;
             const sidebarEl = document.querySelector("ul");
             if (sidebarEl) sidebarEl.style.backgroundColor = theme.sidebarColor;
-
-            // Lisa või uuenda dünaamiline stiil
+            // Lisa dünaamiline stiil külgriba nuppudele ja nuppudele
             let styleTag = document.getElementById("sidebar-dynamic-style");
             if (!styleTag) {
                 styleTag = document.createElement("style");
@@ -266,9 +266,9 @@
             `;
         }
 
-        // Column management
+        // --- Tulbad (jaotused) ---
         function getColumns() {
-            // Proovi laadida localStoragest, kui pole, kasuta vaikimisi kolme tulpa
+            // Lae tulbad localStoragest või kasuta vaikimisi kolme tulpa
             const saved = localStorage.getItem("columns");
             if (saved) return JSON.parse(saved);
             return [
@@ -280,7 +280,6 @@
         function saveColumns(columns) {
             localStorage.setItem("columns", JSON.stringify(columns));
         }
-
         function renderColumns() {
             const board = document.getElementById("board");
             board.innerHTML = "";
@@ -292,7 +291,7 @@
                 columnDiv.ondrop = drop;
                 columnDiv.ondragover = allowDrop;
 
-                // Header with editable name and remove button
+                // Tulba päis koos nime ja eemaldamise nupuga
                 const headerDiv = document.createElement("div");
                 headerDiv.style.display = "flex";
                 headerDiv.style.justifyContent = "space-between";
@@ -308,7 +307,7 @@
                 h2.style.margin = "0";
                 h2.style.paddingRight = "8px";
 
-                // Remove button (hide if only one column left)
+                // Eemalda tulp nupp (kui on rohkem kui 1 tulp)
                 const removeBtn = document.createElement("button");
                 removeBtn.innerHTML = "&#10006;";
                 removeBtn.title = "Eemalda tulp";
@@ -333,10 +332,9 @@
             loadTasks();
             loadColumnNames();
         }
-
+        document.getElementById("add-column-btn").onclick = addColumn;
         function addColumn() {
             const columns = getColumns();
-            // Genereeri unikaalne id
             let idx = 1;
             let newId;
             do {
@@ -344,32 +342,26 @@
             } while (columns.some(c => c.id === newId));
             columns.push({ id: newId, name: "Uus tulp" });
             saveColumns(columns);
-            saveColumnNames(); // et ka nimed oleksid sünkroonis
-            saveTasks(); // et ka tasks struktuur oleks sünkroonis
+            saveColumnNames();
+            saveTasks();
             renderColumns();
         }
-
         function removeColumn(colId) {
             let columns = getColumns();
-            if (columns.length <= 1) return; // Ära luba viimast eemaldada
+            if (columns.length <= 1) return;
             columns = columns.filter(c => c.id !== colId);
             saveColumns(columns);
-
             // Eemalda ka selle tulba ülesanded ja nimi
             const tasks = JSON.parse(localStorage.getItem("tasks") || "{}");
             delete tasks[colId];
             localStorage.setItem("tasks", JSON.stringify(tasks));
-
             const columnNames = JSON.parse(localStorage.getItem("columnNames") || "{}");
             delete columnNames[colId];
             localStorage.setItem("columnNames", JSON.stringify(columnNames));
-
             renderColumns();
         }
 
-        document.getElementById("add-column-btn").onclick = addColumn;
-
-        // Olulisuse klassid ja tekstid
+        // --- Olulisuse klassid ja tekstid ---
         const IMPORTANCE = {
             none: { icon: "", class: "" },
             low: { icon: "!", class: "task-low", label: "Väheoluline" },
@@ -377,7 +369,7 @@
             high: { icon: "!!!", class: "task-important", label: "Eriti oluline" }
         };
 
-        // Muudetud: tasks salvestab ka description ja importance
+        // --- Ülesannete salvestamine ja laadimine ---
         function saveTasks() {
             const columns = getColumns();
             const tasks = {};
@@ -399,14 +391,12 @@
             });
             localStorage.setItem("tasks", JSON.stringify(tasks));
         }
-
         function loadTasks() {
             const columns = getColumns();
             const tasks = JSON.parse(localStorage.getItem("tasks")) || {};
             columns.forEach(column => {
                 const colDiv = document.getElementById(column.id);
                 if (!colDiv) return;
-                // Eemalda vanad taskid
                 Array.from(colDiv.querySelectorAll(".task-card")).forEach(e => e.remove());
                 (tasks[column.id] || []).forEach(task => {
                     createTaskCard(colDiv, task);
@@ -414,6 +404,7 @@
             });
         }
 
+        // --- Ülesande kaardi loomine ---
         function createTaskCard(parent, task) {
             const taskCard = document.createElement("div");
             taskCard.id = task.id;
@@ -423,7 +414,7 @@
             taskCard.setAttribute("data-desc", task.desc || "");
             taskCard.setAttribute("data-importance", task.importance || "none");
 
-            // Importance icon
+            // Olulisuse ikoon
             const imp = IMPORTANCE[task.importance || "none"];
             const impSpan = document.createElement("span");
             impSpan.className = imp.class || "";
@@ -431,19 +422,19 @@
             impSpan.style.minWidth = "18px";
             taskCard.appendChild(impSpan);
 
-            // Task text
+            // Ülesande tekst
             const taskTextElement = document.createElement("span");
             taskTextElement.className = "task-text";
             taskTextElement.textContent = task.text;
             taskCard.appendChild(taskTextElement);
 
-            // Three dots menu button
+            // Kolme täpi menüü nupp
             const menuBtn = document.createElement("button");
             menuBtn.className = "task-menu-btn";
             menuBtn.innerHTML = "&#8942;";
             menuBtn.onclick = function(e) {
                 e.stopPropagation();
-                // Hide all other menus
+                // Sulge teised menüüd
                 document.querySelectorAll(".task-card.show-menu").forEach(card => {
                     if (card !== taskCard) card.classList.remove("show-menu");
                 });
@@ -451,7 +442,7 @@
             };
             taskCard.appendChild(menuBtn);
 
-            // Popup menu
+            // Menüü aken
             const popup = document.createElement("div");
             popup.className = "task-menu-popup";
             popup.innerHTML = `
@@ -473,31 +464,31 @@
             `;
             taskCard.appendChild(popup);
 
-            // Set selected importance
+            // Olulisuse valiku nupud
             Array.from(popup.querySelectorAll(".importance-btn")).forEach(btn => {
                 if (btn.getAttribute("data-imp") === (task.importance || "none")) {
                     btn.classList.add("selected");
                 }
                 btn.onclick = function() {
                     taskCard.setAttribute("data-importance", btn.getAttribute("data-imp"));
-                    // Update icon
+                    // Uuenda ikoon
                     const imp = IMPORTANCE[btn.getAttribute("data-imp")];
                     impSpan.className = imp.class || "";
                     impSpan.textContent = imp.icon || "";
-                    // Highlight selected
+                    // Tõsta valitud nupp esile
                     popup.querySelectorAll(".importance-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                     saveTasks();
                 };
             });
 
-            // Delete button
+            // Kustuta nupp
             popup.querySelector(".delete-btn").onclick = function() {
                 taskCard.remove();
                 saveTasks();
             };
 
-            // Name and description change
+            // Nime ja kirjelduse muutmine
             popup.querySelector(".edit-task-name").oninput = function() {
                 taskTextElement.textContent = this.value;
                 saveTasks();
@@ -507,7 +498,7 @@
                 saveTasks();
             };
 
-            // Hide popup when clicking outside
+            // Sulge menüü kui klikitakse väljapoole
             document.addEventListener("mousedown", function hideMenu(e) {
                 if (!taskCard.contains(e.target)) {
                     taskCard.classList.remove("show-menu");
@@ -517,7 +508,7 @@
             parent.appendChild(taskCard);
         }
 
-        // Escape HTML for safe input
+        // Abi: HTML-i turvaline kuvamine
         function escapeHtml(text) {
             return (text || "").replace(/[<>&"']/g, function(c) {
                 return ({
@@ -526,7 +517,7 @@
             });
         }
 
-        // Muuda addTask, et lisaks alati esimesse tulpa
+        // Lisa ülesanne alati esimesse tulpa
         function addTask(event) {
             event.preventDefault();
             const taskInput = document.getElementById("new-task");
@@ -548,6 +539,7 @@
             }
         }
 
+        // Tulba nimede salvestamine ja laadimine
         function saveColumnNames() {
             const columns = getColumns();
             const columnNames = {};
@@ -559,7 +551,6 @@
             });
             localStorage.setItem("columnNames", JSON.stringify(columnNames));
         }
-
         function loadColumnNames() {
             const columns = getColumns();
             const columnNames = JSON.parse(localStorage.getItem("columnNames")) || {};
@@ -573,24 +564,20 @@
             });
         }
 
+        // Drag & drop funktsioonid
         function allowDrop(ev) {
             ev.preventDefault();
         }
-
         function drag(ev) {
             ev.dataTransfer.setData("text", ev.target.id);
         }
-
         function drop(ev) {
             ev.preventDefault();
             const taskId = ev.dataTransfer.getData("text");
             const taskElement = document.getElementById(taskId);
             const column = ev.target.closest(".column");
-
-            // Determine the nearest spot in the column
             const tasks = Array.from(column.querySelectorAll(".task-card"));
             const dropY = ev.clientY;
-
             let inserted = false;
             for (let i = 0; i < tasks.length; i++) {
                 const task = tasks[i];
@@ -601,15 +588,13 @@
                     break;
                 }
             }
-
-            // If not inserted, append to the end
             if (!inserted) {
                 column.appendChild(taskElement);
             }
-
             saveTasks();
         }
 
+        // Lehe laadimisel rakenda teema ja lae tulbad
         document.addEventListener("DOMContentLoaded", () => {
             applyTheme();
             renderColumns();
