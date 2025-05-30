@@ -80,9 +80,9 @@
         <div id="timer">0:00</div>
         <button id="pause-btn" type="button" onclick="togglePause()">Paus</button>
         <form onsubmit="updateTimer(event)">
-            <input type="number" id="tunnid" placeholder="Tunnid">
-            <input type="number" id="minutid" placeholder="Minutid">
-            <input type="number" id="sekundid" placeholder="Sekundid">
+            <input type="number" min="0" id="tunnid" placeholder="Tunnid">
+            <input type="number" min="0" id="minutid" placeholder="Minutid">
+            <input type="number" min="0" id="sekundid" placeholder="Sekundid">
             <button id="start-btn" type="submit">Käivita taimer!</button>
         </form>
         <!-- Progress bar -->
