@@ -55,7 +55,7 @@
             bottom: 10px;
             left: 0;
             width: 100%;
-            background-color: #575757;
+            background-color: var(--collapse-btn-color, #04AA6D); /* Default to green */
             color: white;
             border: none;
             cursor: pointer;
@@ -64,7 +64,7 @@
             text-align: center;
         }
         .collapse-btn:hover {
-            background-color: #333;
+            background-color: var(--collapse-btn-hover-color, #037a50); /* Default hover color */
         }
     </style>
     </div>
@@ -166,6 +166,10 @@
             document.body.style.backgroundColor = theme.bgColor;
             const sidebarEl = document.querySelector("ul");
             if (sidebarEl) sidebarEl.style.backgroundColor = theme.sidebarColor;
+
+            // Update collapse button colors dynamically
+            document.documentElement.style.setProperty("--collapse-btn-color", theme.accent);
+            document.documentElement.style.setProperty("--collapse-btn-hover-color", theme.accentHover);
 
             // Lisa või uuenda dünaamiline stiil
             let styleTag = document.getElementById("sidebar-dynamic-style");
