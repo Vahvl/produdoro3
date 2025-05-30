@@ -15,6 +15,7 @@
         .content {
             margin-left: 22%; /* Adjusted for sidebar */
             padding: 20px;
+            transition: margin-left 0.5s ease; /* Smooth transition for content margin */
         }
         ul {
             list-style-type: none;
@@ -25,6 +26,7 @@
             position: fixed;
             height: 100%;
             overflow: auto;
+            transition: width 0.5s ease; /* Apply transition to the sidebar */
         }
         li a {
             display: block;
@@ -65,14 +67,40 @@
         #start-btn:hover {
             background-color: #037a50; /* Default accent hover color */
         }
+        .sidebar-collapsed {
+            width: 40px; /* Wider collapsed sidebar */
+            transition: width 0.5s ease; /* Smoother transition for both collapsing and uncollapsing */
+        }
+        .sidebar-collapsed li a {
+            font-size: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .collapse-btn {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            background-color: #575757;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .collapse-btn:hover {
+            background-color: #333;
+        }
     </style>
 </head>
 <body>
-    <ul>
+    <ul id="sidebar">
         <li><a class="index" href="/">Koduleht</a></li>
         <li><a href="pomodoro" class="active">Taimer</a></li>
         <li><a href="todolist">To-do list</a></li>
         <li><a href="settings">Settings</a></li>
+        <button class="collapse-btn" onclick="toggleSidebar()">&#9664;</button>
     </ul>
     <div class="content">
         <h1>Pomodoro Timer</h1>
@@ -270,6 +298,14 @@
             }
         }
     
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const isCollapsed = sidebar.classList.toggle("sidebar-collapsed");
+            const collapseBtn = document.querySelector(".collapse-btn");
+            collapseBtn.innerHTML = isCollapsed ? "&#9654;" : "&#9664;";
+            document.querySelector(".content").style.marginLeft = isCollapsed ? "40px" : "22%";
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             applyTheme();
             const remainingTime = parseInt(localStorage.getItem("remainingTime"));
