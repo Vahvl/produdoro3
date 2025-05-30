@@ -193,10 +193,6 @@
                 const progressBar = document.getElementById("progress-bar");
                 if (progressBar) progressBar.style.width = "100%";
 
-                if (timerWindow && !timerWindow.closed) {
-                    timerWindow.close();
-                }
-
                 startBtn.textContent = "Käivita taimer!";
                 return;
             }
@@ -209,7 +205,6 @@
             localStorage.setItem("remainingTime", totalSeconds);
 
             startTimer(totalSeconds);
-            openTimerWindow(totalSeconds);
 
             startBtn.textContent = "Peata taimer!";
         }
@@ -224,10 +219,6 @@
                     clearInterval(timerInterval);
                     clearInterval(progressBarInterval);
                     localStorage.removeItem("remainingTime");
-    
-                    if (timerWindow && !timerWindow.closed) {
-                        timerWindow.close();
-                    }
     
                     alert("Aeg on läbi!");
                     startBtn.textContent = "Käivita taimer!";
@@ -254,13 +245,6 @@
                 } else {
                     progressBar.style.width = `${progressPercentage}%`;
                 }
-    
-                if (timerWindow && !timerWindow.closed) {
-                    const externalProgressBar = timerWindow.document.getElementById("external-progress-bar");
-                    if (externalProgressBar) {
-                        externalProgressBar.style.width = `${progressPercentage}%`;
-                    }
-                }
             }, 100);
         }
     
@@ -268,13 +252,6 @@
             const timerDisplay = document.getElementById("timer");
             if (timerDisplay) {
                 timerDisplay.textContent = formatTime(seconds);
-            }
-    
-            if (timerWindow && !timerWindow.closed) {
-                const externalTimer = timerWindow.document.getElementById("external-timer");
-                if (externalTimer) {
-                    externalTimer.textContent = formatTime(seconds);
-                }
             }
         }
     
@@ -290,66 +267,6 @@
                     startTimer(remainingTime);
                 }
                 pauseBtn.textContent = "Paus";
-            }
-        
-            if (timerWindow && !timerWindow.closed) {
-                const externalPauseBtn = timerWindow.document.getElementById("external-pause-btn");
-                if (externalPauseBtn) {
-                    externalPauseBtn.textContent = pauseBtn.textContent;
-                }
-            }
-        }
-    
-        function openTimerWindow(duration) {
-            if (!timerWindow || timerWindow.closed) {
-                timerWindow = window.open("", "TimerWindow", "width=300,height=200");
-                const theme = THEMES[getTheme()] || THEMES.default;
-    
-                timerWindow.document.body.innerHTML = `
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            margin: 0;
-                            padding: 20px;
-                            background-color: ${theme.bgColor};
-                        }
-                        h1 {
-                            font-size: 24px;
-                            color: ${theme.sidebarColor};
-                        }
-                        #external-progress-container {
-                            width: 100%;
-                            background-color: #ddd;
-                            height: 20px;
-                            border-radius: 10px;
-                            margin-top: 20px;
-                        }
-                        #external-progress-bar {
-                            width: 100%;
-                            height: 100%;
-                            background-color: ${theme.sidebarColor};
-                            border-radius: 10px;
-                        }
-                        #external-pause-btn {
-                            margin-top: 10px;
-                            padding: 10px;
-                            background-color: ${theme.accent};
-                            color: white;
-                            border: none;
-                            border-radius: 5px;
-                            cursor: pointer;
-                        }
-                        #external-pause-btn:hover {
-                            background-color: ${theme.accentHover};
-                        }
-                    </style>
-                    <h1>Remaining Time</h1>
-                    <div id="external-timer">${formatTime(duration)}</div>
-                    <div id="external-progress-container">
-                        <div id="external-progress-bar"></div>
-                    </div>
-                    <button id="external-pause-btn" onclick="window.opener.togglePause()">Paus</button>
-                `;
             }
         }
     
