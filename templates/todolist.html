@@ -642,6 +642,7 @@
                         taskCard.classList.contains("show-menu") &&
                         (currName !== origName || currDesc !== origDesc || currImportance !== origImportance)
                     ) {
+                        // Kui kasutaja katkestab muudatused, taastame algväärtused
                         if (window.confirm("Oled kindel, et soovid muudatused katkestada?")) {
                             // Taasta algväärtused (tagasi muudetud, mitte salvestu)
                             nameInput.value = origName;
@@ -650,10 +651,6 @@
                             importanceOptions.querySelectorAll("button").forEach(b => {
                                 b.classList.toggle("selected", b.getAttribute("data-imp") === origImportance);
                             });
-                            // Taasta ka olulisuse ikoon
-                            const imp = IMPORTANCE[origImportance];
-                            impSpan.className = imp.class || "";
-                            impSpan.textContent = imp.icon || "";
                             taskCard.classList.remove("show-menu");
                         } else {
                             // Ära sulge popupi, jää muudatuste juurde
