@@ -1,0 +1,319 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f8ff; /* Light blue background */
+}
+.content {
+    margin-left: 22%; /* Adjusted for sidebar */
+    padding: 20px;
+}
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 20%;
+    background-color: #333; /* Dark sidebar */
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    transition: width 0.5s ease; /* Apply transition to the sidebar */
+}
+li a {
+    display: block;
+    color: white;
+    padding: 10px 16px;
+    text-decoration: none;
+    font-size: 40px;
+}
+li a.active {
+    background-color: #04AA6D;
+    color: white;
+}
+li a:hover:not(.active) {
+    background-color: #575757;
+    color: white;
+}
+.sidebar-collapsed {
+    width: 40px; /* Wider collapsed sidebar */
+    transition: width 0.5s ease; /* Smoother transition for both collapsing and uncollapsing */
+}
+.sidebar-collapsed li a {
+    font-size: 0;
+    padding: 0;
+    overflow: hidden;
+}
+.collapse-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    background-color: var(--collapse-btn-color, #04AA6D); /* Default to green */
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    text-align: center;
+}
+.collapse-btn:hover {
+    background-color: var(--collapse-btn-hover-color, #037a50); /* Default hover color */
+}
+.board {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+.column {
+    flex: 1;
+    background-color: #e6e6fa;
+    padding: 10px;
+    border-radius: 8px;
+    min-height: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.column h2 {
+    text-align: center;
+    color: #333;
+    cursor: pointer;
+    background-color: transparent;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+.column h2:hover {
+    background-color: #d3d3d3;
+}
+.column h2:focus {
+    background-color: transparent;
+}
+.task-card {
+    background: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.task-important {
+    color: #e53935;
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 20px;
+}
+.task-medium {
+    color: #ff9800;
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 20px;
+}
+.task-low {
+    color: #1976d2;
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 20px;
+}
+.task-menu-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #888;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: 0;
+    padding: 0 4px;
+}
+.task-menu-popup {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 36px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+    min-width: 220px;
+    padding: 10px 18px 10px 10px; /* parem padding lisatud */
+}
+.task-menu-popup .importance-dropdown {
+    position: relative;
+    display: inline-block;
+}
+.task-menu-popup .importance-btn {
+    background: #eee;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    padding: 3px 0px 3px 8px; /* veel rohkem ruumi paremal noole jaoks */
+    cursor: pointer;
+    margin-right: 4px;
+    font-size: 13px;
+    position: relative;
+    min-width: 110px;
+    transition: background 0.1s;
+}
+.task-menu-popup .importance-btn.open {
+    /* Heledam taust kui rippmenüü on avatud */
+    background: #f6fff6;
+}
+.task-menu-popup .importance-btn .dropdown-arrow {
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%) rotate(0deg);
+    font-size: 20px;
+    pointer-events: none;
+}
+.task-menu-popup .importance-btn.open .dropdown-arrow {
+    transform: translateY(-50%) rotate(-90deg);
+}
+.task-menu-popup .importance-options {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 110%;
+    background: #fff;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-width: 120px;
+    z-index: 20;
+}
+.task-menu-popup .importance-options button {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+.task-menu-popup .importance-options button.selected {
+    background: #04AA6D;
+    color: #fff;
+}
+.task-menu-popup .importance-options button:hover {
+    /* Tumedam roheline kui valitud roheline */
+    background: #037a50;
+    color: #fff;
+}
+.task-card.show-menu .task-menu-popup {
+    display: block;
+}
+.task-menu-popup label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+.task-menu-popup input[type="text"], .task-menu-popup textarea {
+    width: 100%;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 4px;
+    font-size: 14px;
+}
+.task-menu-popup textarea {
+    resize: vertical;
+    min-height: 40px;
+    max-height: 120px;
+}
+.task-menu-popup .task-menu-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    align-items: center;
+}
+.task-menu-popup .confirm-btn {
+    background: #04AA6D;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 14px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+.task-menu-popup .delete-btn {
+    background: #e53935;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 10px;
+    cursor: pointer;
+}
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 20%;
+    background-color: #333;
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    transition: width 0.5s ease; /* Apply transition to the sidebar */
+}
+li a {
+    display: block;
+    color: white;
+    padding: 10px 16px;
+    text-decoration: none;
+    font-size: 40px;
+}
+li a.active {
+    background-color: #04AA6D;
+    color: white;
+}
+li a:hover:not(.active) {
+    background-color: #575757;
+    color: white;
+}
+.add-task-form {
+    margin-bottom: 20px;
+}
+.add-task-form input {
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.add-task-form button {
+    padding: 8px 12px;
+    background-color: #04AA6D;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.add-task-form button:hover {
+    background-color: #037a50;
+}
+.sidebar-collapsed {
+    width: 40px; /* Wider collapsed sidebar */
+    transition: width 0.5s ease; /* Smoother transition for both collapsing and uncollapsing */
+}
+.sidebar-collapsed li a {
+    font-size: 0;
+    padding: 0;
+    overflow: hidden;
+}
+.collapse-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    background-color: var(--collapse-btn-color, #04AA6D); /* Default to green */
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    text-align: center;
+}
+.collapse-btn:hover {
+    background-color: var(--collapse-btn-hover-color, #037a50); /* Default hover color */
+}
